@@ -1,0 +1,17 @@
+Bowser|Bowser's Castle|1200|55|1.8|Fire|400|true
+Dr. Eggman|Death Egg|850|45|3.5|Electric|600|true
+Dr. Wily|Wily Castle|750|50|2.2|Steel|500|true
+Ganondorf|Hyrule Castle|1500|70|2.5|Dark|800|true
+Sephiroth|Northern Crater|2000|85|4.5|Light|999|true
+Ridley|Norfair Core|950|60|4.8|Fire|350|false
+King K. Rool|Gangplank Galleon|1100|50|2.0|Water|300|false
+Shao Kahn|Outworld Arena|1300|75|2.8|Dark|450|true
+M. Bison|Shadaloo Base|1050|65|3.6|Mind|500|false
+Dracula|Castlevania Keep|1600|60|3.8|Blood|850|true
+GlaDOS|Aperture Labs|2000|20|1.2|Tech|900|false
+Mother Brain|Tourian|1400|55|1.5|Mind|600|true
+Nemesis|Raccoon City|1800|65|2.9|Poison|200|false
+Gwyn, Lord of Cinder|Kiln of the First Flame|1750|80|4.2|Fire|750|true
+King Dedede|Mt. Dedede|900|40|2.1|Wind|250|false
+Albert Wesker|Tricell Facility|1150|68|5.0|Poison|550|false
+Grunty|Spiral Mountain|850|35|1.9|Dark|400|false
