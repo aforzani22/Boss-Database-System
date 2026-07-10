@@ -76,18 +76,31 @@ public class EnemyConsoleApp {
                 + "0. Exit";
     }
 
+    public String buildUpdateMenuText() {
+        return "\n----- UPDATE ENEMY MENU -----\n"
+                + "1. Change name\n"
+                + "2. Change game area\n"
+                + "3. Change health\n"
+                + "4. Change damage\n"
+                + "5. Change speed\n"
+                + "6. Change weakness\n"
+                + "7. Change reward points\n"
+                + "8. Change defeated status\n"
+                + "0. Finish updating this enemy";
+    }
+
     public int readMenuChoice() {
-        return readInt("Enter choice: ");
+        return readInt("Enter choice as a whole number from 0 to 7: ");
     }
 
     public Enemy readEnemyFromInput() {
-        String name = readNonEmptyString("Name: ");
-        String gameArea = readNonEmptyString("Game area: ");
-        int health = readPositiveInt("Health: ");
-        int damage = readZeroOrHigherInt("Damage: ");
-        double speed = readZeroOrHigherDouble("Speed: ");
-        String weakness = readNonEmptyString("Weakness: ");
-        int rewardPoints = readZeroOrHigherInt("Reward points: ");
+        String name = readEnemyText("Name: ");
+        String gameArea = readEnemyText("Game area (text, example: Wily's Castle): ");
+        int health = readRangedInt("Health (whole number 1-1000): ", Enemy.MIN_HEALTH, Enemy.MAX_HEALTH);
+        int damage = readRangedInt("Damage (whole number 0-200): ", Enemy.MIN_DAMAGE, Enemy.MAX_DAMAGE);
+        double speed = readRangedDouble("Speed (decimal 0.0-50.0): ", Enemy.MIN_SPEED, Enemy.MAX_SPEED);
+        String weakness = readEnemyText("Weakness (text, example: Fire): ");
+        int rewardPoints = readRangedInt("Reward points (whole number 0-99999): ", Enemy.MIN_REWARD_POINTS, Enemy.MAX_REWARD_POINTS);
         boolean defeated = readBoolean("Defeated? Enter true or false: ");
 
         return new Enemy(name, gameArea, health, damage, speed, weakness, rewardPoints, defeated);
@@ -101,35 +114,99 @@ public class EnemyConsoleApp {
     }
 
     public String handleLoadEnemies() {
-        filePath = readNonEmptyString("Enter text file path to load from: ");
+        filePath = readNonEmptyString("Enter text file path to load from (example: enemies.txt): ");
         int loaded = manager.loadEnemies(filePath);
         return "Load complete. Added " + loaded + " enemies. " + manager.getLastMessage();
     }
 
     public String handleSaveEnemies() {
-        filePath = readNonEmptyString("Enter text file path to save to: ");
+        filePath = readNonEmptyString("Enter text file path to save to (example: enemies.txt): ");
         boolean success = manager.saveEnemies(filePath);
         return buildStatusMessage(success, "save enemies");
     }
 
     public String handleUpdateEnemy() {
-        String name = readNonEmptyString("Enter the name of the enemy to update: ");
+        String currentName = readNonEmptyString("Enter the name of the enemy to update: ");
 
-        if (!manager.hasEnemy(name)) {
-            return "Enemy not found. Nothing was updated.";
+        if (!manager.hasEnemy(currentName)) {
+            return "Enemy not found.Please check the spelling and try again.";
         }
 
-        System.out.println("Enter the new information for this enemy.");
-        Enemy updatedEnemy = readEnemyFromInput();
-        boolean success = manager.updateEnemy(name, updatedEnemy);
-        return buildStatusMessage(success, "update enemy");
+        boolean updating = true;
+        boolean changedSomething = false;
+
+        while (updating) {
+            System.out.println(manager.buildEnemyUpdateReport(currentName));
+            System.out.println(buildUpdateMenuText());
+            int choice = readInt("Choose the field to update, or enter 0 to finish: ");
+            boolean success = false;
+
+            switch (choice) {
+                case 1:
+                    String newName = readEnemyText("New name (text, 1-30 characters, no | symbol): ");
+                    success = manager.updateEnemyName(currentName, newName);
+
+                    if (success) {
+                        currentName = newName;
+                    }
+                    break;
+                case 2:
+                    String gameArea = readEnemyText("New game area (text): ");
+                    success = manager.updateEnemyGameArea(currentName, gameArea);
+                    break;
+                case 3:
+                    int health = readRangedInt("New health (whole number 1-1000): ", Enemy.MIN_HEALTH, Enemy.MAX_HEALTH);
+                    success = manager.updateEnemyHealth(currentName, health);
+                    break;
+                case 4:
+                    int damage = readRangedInt("New damage (whole number 0-200): ", Enemy.MIN_DAMAGE, Enemy.MAX_DAMAGE);
+                    success = manager.updateEnemyDamage(currentName, damage);
+                    break;
+                case 5:
+                    double speed = readRangedDouble("New speed (decimal 0.0-50.0): ", Enemy.MIN_SPEED, Enemy.MAX_SPEED);
+                    success = manager.updateEnemySpeed(currentName, speed);
+                    break;
+                case 6:
+                    String weakness = readEnemyText("New weakness (text): ");
+                    success = manager.updateEnemyWeakness(currentName, weakness);
+                    break;
+                case 7:
+                    int rewardPoints = readRangedInt("New reward points (whole number 0-99999): ", Enemy.MIN_REWARD_POINTS, Enemy.MAX_REWARD_POINTS);
+                    success = manager.updateEnemyRewardPoints(currentName, rewardPoints);
+                    break;
+                case 8:
+                    boolean defeated = readBoolean("New defeated status. Enter true or false: ");
+                    success = manager.updateEnemyDefeated(currentName, defeated);
+                    break;
+                case 0:
+                    updating = false;
+                    break;
+                default:
+                    System.out.println("Invalid update choice. Please choose 0 through 8.");
+                    break;
+            }
+
+            if (choice >= 1 && choice <= 8) {
+                System.out.println(manager.getLastMessage());
+
+                if (success) {
+                    changedSomething = true;
+                }
+            }
+        }
+
+        if (changedSomething) {
+            return "Update finished. " + manager.getLastMessage();
+        }
+
+        return "Update finished. No changes were made.";
     }
 
     public String handleRemoveEnemy() {
         String name = readNonEmptyString("Enter the name of the enemy to remove: ");
 
         if (!manager.hasEnemy(name)) {
-            return "Enemy not found. Nothing was removed.";
+            return "Enemy not found. Please check the spelling and try again.";
         }
 
         boolean confirmed = readYesOrNo("Are you sure you want to remove this enemy? Enter yes or no: ");
@@ -143,7 +220,7 @@ public class EnemyConsoleApp {
     }
 
     public String handleCalculateDifficulty() {
-        String name = readNonEmptyString("Enter enemy name: ");
+        String name = readNonEmptyString("Enter enemy name to calculate difficulty: ");
         double score = manager.calculateDifficulty(name);
 
         if (score < 0) {
@@ -179,6 +256,24 @@ public class EnemyConsoleApp {
         return text;
     }
 
+    public String readEnemyText(String prompt) {
+        String text = "";
+        boolean valid = false;
+
+        while (!valid) {
+            System.out.print(prompt);
+            text = input.nextLine().trim();
+
+            if (Enemy.isValidText(text)) {
+                valid = true;
+            } else {
+                System.out.println("Enter text. Try again.");
+            }
+        }
+
+        return text;
+    }
+
     public int readInt(String prompt) {
         boolean valid = false;
         int number = 0;
@@ -191,33 +286,30 @@ public class EnemyConsoleApp {
                 number = Integer.parseInt(text);
                 valid = true;
             } catch (NumberFormatException error) {
-                System.out.println("Please enter a whole number.");
+                System.out.println("Please enter a whole number, not words or decimals.");
             }
         }
 
         return number;
     }
 
-    public int readPositiveInt(String prompt) {
+    public int readRangedInt(String prompt, int minimum, int maximum) {
         int number = readInt(prompt);
 
-        while (number <= 0) {
-            System.out.println("Please enter a number greater than 0.");
+        while (number < minimum || number > maximum) {
+            System.out.println("Please enter a whole number from " + minimum + " to " + maximum + ".");
             number = readInt(prompt);
         }
 
         return number;
     }
 
+    public int readPositiveInt(String prompt) {
+        return readRangedInt(prompt, 1, Integer.MAX_VALUE);
+    }
+
     public int readZeroOrHigherInt(String prompt) {
-        int number = readInt(prompt);
-
-        while (number < 0) {
-            System.out.println("Please enter 0 or higher.");
-            number = readInt(prompt);
-        }
-
-        return number;
+        return readRangedInt(prompt, 0, Integer.MAX_VALUE);
     }
 
     public double readDouble(String prompt) {
@@ -232,22 +324,26 @@ public class EnemyConsoleApp {
                 number = Double.parseDouble(text);
                 valid = true;
             } catch (NumberFormatException error) {
-                System.out.println("Please enter a valid decimal number.");
+                System.out.println("Please enter a decimal number, like 2.5 or 10.");
             }
         }
 
         return number;
     }
 
-    public double readZeroOrHigherDouble(String prompt) {
+    public double readRangedDouble(String prompt, double minimum, double maximum) {
         double number = readDouble(prompt);
 
-        while (number < 0) {
-            System.out.println("Please enter 0 or higher.");
+        while (number < minimum || number > maximum) {
+            System.out.println("Please enter a decimal number from " + minimum + " to " + maximum + ".");
             number = readDouble(prompt);
         }
 
         return number;
+    }
+
+    public double readZeroOrHigherDouble(String prompt) {
+        return readRangedDouble(prompt, 0, Double.MAX_VALUE);
     }
 
     public boolean readBoolean(String prompt) {
@@ -264,7 +360,7 @@ public class EnemyConsoleApp {
                 answer = false;
                 valid = true;
             } else {
-                System.out.println("Please enter true or false.");
+                System.out.println("Please enter true or false only.");
             }
         }
 

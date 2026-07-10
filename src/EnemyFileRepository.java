@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class EnemyFileRepository {
     private String delimiter;
@@ -60,7 +61,7 @@ public class EnemyFileRepository {
     }
 
     public Enemy parseLine(String line) {
-        String[] parts = line.split("\\|");
+        String[] parts = line.split(Pattern.quote(delimiter), -1);
 
         if (parts.length != 8) {
             throw new IllegalArgumentException("Each line must have 8 fields.");
